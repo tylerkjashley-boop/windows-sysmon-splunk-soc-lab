@@ -66,11 +66,32 @@ Detects PowerShell processes launched using:
 
 This behavior may be used by attackers to execute PowerShell scripts while bypassing local execution-policy restrictions.
 
+```spl
+host="SOC-ENDPOINT-01" sourcetype="sysmon_csv" Id=1
+| rex field=Message "Image:\s+(?<Image>[^\r\n]+)"
+| rex field=Message "CommandLine:\s+(?<CommandLine>[^\r\n]+)"
+| rex field=Message "User:\s+(?<User>[^\r\n]+)"
+| rex field=Message "ParentImage:\s+(?<ParentImage>[^\r\n]+)"
+| where match(lower(Image), "powershell\.exe$") AND match(lower(CommandLine), "executionpolicy\s+bypass")
+| table _time host User Image CommandLine ParentImage
+```
+
 ### 2. PowerShell Outbound HTTPS Connection
 
 Detects PowerShell processes establishing outbound TCP connections over port 443.
 
 Network-enabled PowerShell activity can be legitimate but may also be associated with payload retrieval or command-and-control activity.
+
+```spl
+host="SOC-ENDPOINT-01" sourcetype="sysmon_csv" Id=3 "powershell.exe"
+| rex field=Message "Image:\s+(?<Image>[^\r\n]+)"
+| rex field=Message "User:\s+(?<User>[^\r\n]+)"
+| rex field=Message "Protocol:\s+(?<Protocol>[^\r\n]+)"
+| rex field=Message "DestinationIp:\s+(?<DestinationIp>[^\r\n]+)"
+| rex field=Message "DestinationPort:\s+(?<DestinationPort>[^\r\n]+)"
+| where DestinationPort="443"
+| table _time host User Image Protocol DestinationIp DestinationPort
+```
 
 ### 3. Nested PowerShell Execution
 
@@ -78,11 +99,32 @@ Detects PowerShell processes spawning additional PowerShell processes.
 
 Nested scripting activity may indicate chained command execution and should be investigated alongside command-line and parent-process telemetry.
 
+```spl
+host="SOC-ENDPOINT-01" sourcetype="sysmon_csv" Id=1 "powershell.exe"
+| rex field=Message "Image:\s+(?<Image>[^\r\n]+)"
+| rex field=Message "CommandLine:\s+(?<CommandLine>[^\r\n]+)"
+| rex field=Message "User:\s+(?<User>[^\r\n]+)"
+| rex field=Message "ParentImage:\s+(?<ParentImage>[^\r\n]+)"
+| where like(lower(Image), "%powershell.exe") AND like(lower(ParentImage), "%powershell.exe")
+| table _time host User ParentImage Image CommandLine
+```
+
 ### 4. Elevated PowerShell Execution
 
 Detects PowerShell processes executing with a High integrity level.
 
 The detection was refined to identify the actual PowerShell executable instead of matching references to PowerShell contained within unrelated parent-process telemetry.
+
+```spl
+host="SOC-ENDPOINT-01" sourcetype="sysmon_csv" Id=1
+| rex field=Message "Image:\s+(?<Image>[^\r\n]+)"
+| rex field=Message "CommandLine:\s+(?<CommandLine>[^\r\n]+)"
+| rex field=Message "User:\s+(?<User>[^\r\n]+)"
+| rex field=Message "IntegrityLevel:\s+(?<IntegrityLevel>[^\r\n]+)"
+| rex field=Message "ParentImage:\s+(?<ParentImage>[^\r\n]+)"
+| where match(lower(Image), "powershell\.exe$") AND IntegrityLevel="High"
+| table _time host User IntegrityLevel Image ParentImage CommandLine
+```
 
 ## Incident Investigations
 
