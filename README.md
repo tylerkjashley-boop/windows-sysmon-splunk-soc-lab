@@ -184,4 +184,26 @@ All suspicious activity was intentionally generated for educational and defensiv
 
 ## Screenshots
 
-Screenshots of the Splunk dashboard and individual detections will be added to this repository.
+### SOC Endpoint Monitoring Dashboard
+
+![SOC Endpoint Monitoring Dashboard](screenshots/soc%20dashboard.png)
+
+### Elevated PowerShell Execution
+
+![Elevated PowerShell Execution](screenshots/elevated%20powershell.png)
+
+### PowerShell Outbound HTTPS Connection
+
+![PowerShell Outbound HTTPS](screenshots/outbound-https-correct.png)
+
+### Nested PowerShell Execution
+
+![Nested PowerShell Execution](screenshots/nested-powershell-query.png)
+
+### Execution Policy Bypass
+
+![Execution Policy Bypass](screenshots/execution%20policy.png)
+
+### Sysmon Configuration
+
+![Sysmon Configuration](screenshots/system%20configuration.png)
